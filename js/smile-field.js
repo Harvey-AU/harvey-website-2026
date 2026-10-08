@@ -13,8 +13,9 @@
  * the statement.
  *
  * Needs GSAP with ScrollTrigger, e.g. from Webflow's GSAP integration.
- * Without them the smiles show fully formed and nothing pins. With SplitText
- * as well, the statement's words also light up from faint to full.
+ * Without them the smiles show fully formed and nothing pins. The
+ * statement's words also light up from faint to full; the script splits them
+ * itself, so SplitText is not needed.
  *
  * Load standalone on pages that need it (not part of the framework's main.js),
  * after pinned-steps.js when both are on a page:
@@ -308,12 +309,39 @@
     tl.to(state, { progress: 1, duration: FORM_SHARE, onUpdate: () => field.setProgress(state.progress) }, 0);
     tl.to({}, { duration: 1 - FORM_SHARE }, FORM_SHARE);
 
-    if (window.SplitText && field.texts.length && section.querySelector("[data-smile-field-text]")) {
-      const marked = field.texts.filter((el) => el.hasAttribute("data-smile-field-text"));
-      const words = marked.flatMap((el) => new window.SplitText(el, { type: "words" }).words);
+    const marked = field.texts.filter((el) => el.hasAttribute("data-smile-field-text"));
+    if (marked.length) {
+      const words = marked.flatMap(splitWords);
       const stagger = WORDS_SHARE / words.length;
       tl.fromTo(words, { opacity: from }, { opacity: 1, duration: stagger * 2, stagger }, 0);
     }
+  }
+
+  // Wraps each word of el's text in a plain span, keeping any inline markup
+  // and the spaces between words as they are
+  function splitWords(el) {
+    const words = [];
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    const nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach((node) => {
+      const parts = node.textContent.split(/(\s+)/);
+      if (parts.length < 2 && !parts[0].trim()) return;
+      const fragment = document.createDocumentFragment();
+      parts.forEach((part) => {
+        if (!part) return;
+        if (!part.trim()) {
+          fragment.appendChild(document.createTextNode(part));
+          return;
+        }
+        const word = document.createElement("span");
+        word.textContent = part;
+        words.push(word);
+        fragment.appendChild(word);
+      });
+      node.parentNode.replaceChild(fragment, node);
+    });
+    return words;
   }
 
   function start() {
@@ -325,7 +353,6 @@
     const animate = gsap && window.ScrollTrigger && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (animate) {
       gsap.registerPlugin(window.ScrollTrigger);
-      if (window.SplitText) gsap.registerPlugin(window.SplitText);
       syncLenis();
     } else {
       debug("smile-field", "init", "No GSAP or reduced motion, showing smiles formed", "info");

@@ -8,9 +8,9 @@ These are site-specific, so they live here rather than in [webflow-framework](ht
 | File | What it does | Hooks |
 | --- | --- | --- |
 | `js/smooth-scroll.js` | Site-wide smooth scroll via Lenis 1.3.26 (loaded from jsDelivr), driven by the GSAP ticker when GSAP is present. | `data-lerp` on the script tag (default 0.08) |
-| `js/parallax-columns.js` | Hero grid of looping columns with scroll parallax and mouse pan, optionally shrinking from full width into a rounded, bordered frame at the container width as it scrolls away. | `[data-parallax-columns]` section, `data-parallax-columns-shrink/-radius/-border` |
-| `js/pinned-reveal.js` | Section that pins while its text lights up word by word, then scrolls on (needs GSAP + ScrollTrigger + SplitText). | `[data-pinned-reveal]` section, `[data-pinned-reveal-text]` text |
-| `js/pinned-steps.js` | Pinned numbered steps with image wipes and optional per-step colours (needs GSAP + ScrollTrigger). | `[data-pinned-steps]` section, `data-pinned-steps-bg/-fg/-sub` on steps |
+| `js/parallax-columns.js` | Hero grid of looping columns with scroll parallax and mouse pan, optionally shrinking from full width into a rounded frame at the container width as it scrolls away. | `[data-parallax-columns]` section, `data-parallax-columns-shrink/-radius/-border` |
+| `js/pinned-reveal.js` | Section whose text lights up word by word as it scrolls in, pinning until every word is lit, while marked content above fades out (needs GSAP + ScrollTrigger). | `[data-pinned-reveal]` section, `[data-pinned-reveal-text]` text, `[data-pinned-reveal-fade]` content, `data-pinned-reveal-start` |
+| `js/pinned-steps.js` | Pinned numbered steps with image wipes and optional per-step colours (needs GSAP + ScrollTrigger). | `[data-pinned-steps]` section, `data-pinned-steps-bg/-fg/-sub/-accent` on steps |
 | `js/marquee.js` | Seamless endless row at a constant speed, with optional odd/even item split and scroll-velocity boost. | `[data-marquee]` strip, `data-marquee-items`, `data-marquee-boost` |
 | `js/bg-melt.js` | Page background that melts between section colours as each section scrolls up, flipping marked artwork to light-on-dark over dark colours and melting marked text colour with it. | `[data-bg-melt]` sections, `data-bg-melt-fg`, `[data-bg-melt-invert]` artwork, `[data-bg-melt-text]` text |
 | `js/nav-reveal.js` | Header that hides on scroll down and reveals on scroll up (not used yet). | `[data-nav-reveal]` header |

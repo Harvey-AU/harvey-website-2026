@@ -51,6 +51,9 @@
  *   -bg="#ecebe7"                      Background of the theme target.
  *   -fg="#1e1e1e"                      Sets --pinned-steps-fg on it.
  *   -sub="#3a3935"                     Sets --pinned-steps-sub on it.
+ *   -accent="#ffb200"                  Sets --pinned-steps-accent on it,
+ *                                      e.g. for a smile icon that must
+ *                                      stay visible on every background.
  *                                      On desktop the colours blend from
  *                                      step to step with the image wipe.
  *                                      Below the breakpoint the first
@@ -122,7 +125,7 @@
     return marked.length ? [...marked] : [...step.children];
   }
 
-  const THEME_KEYS = ["bg", "fg", "sub"];
+  const THEME_KEYS = ["bg", "fg", "sub", "accent"];
 
   // Per-step colours, blended between neighbouring steps by a fractional
   // step index. Returns null when no step sets a colour.
@@ -156,6 +159,7 @@
       const mix = (key) => (t === 0 ? a[key] : gsap.utils.interpolate(a[key], b[key], t));
       if (used.includes("fg")) target.style.setProperty("--pinned-steps-fg", mix("fg"));
       if (used.includes("sub")) target.style.setProperty("--pinned-steps-sub", mix("sub"));
+      if (used.includes("accent")) target.style.setProperty("--pinned-steps-accent", mix("accent"));
       if (used.includes("bg")) {
         // bg-melt.js reads this for the body; its CSS keeps the target clear
         const bg = mix("bg");
@@ -168,6 +172,7 @@
       delete target._meltColor;
       target.style.removeProperty("--pinned-steps-fg");
       target.style.removeProperty("--pinned-steps-sub");
+      target.style.removeProperty("--pinned-steps-accent");
       target.style.backgroundColor = previousBg;
     }
 

@@ -6,7 +6,7 @@
  * screen width or row length.
  *
  * Load standalone on pages that need it (not part of the framework's main.js):
- *   <script src="https://cdn.jsdelivr.net/gh/Harvey-AU/harvey-website-2026@1.0.0/js/marquee.js" defer></script>
+ *   <script src="https://cdn.jsdelivr.net/gh/Harvey-AU/harvey-website-2026@1.5.0/js/marquee.js" defer></script>
  *
  * Markup:
  *   [data-marquee]                     The visible strip. Clipped.

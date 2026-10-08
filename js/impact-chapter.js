@@ -34,6 +34,9 @@
  *     [-stage]                         Full-screen stage, made sticky. The
  *                                      canvas field goes in as its first
  *                                      child, behind everything else.
+ *       [-field]                       Optional: a static stand-in for the
+ *                                      field, shown without JavaScript.
+ *                                      Hidden once the canvas goes in.
  *       [-copy]                        Optional: the statement's container,
  *                                      used to fit the large statement.
  *                                      Defaults to the statement's parent.
@@ -46,6 +49,8 @@
  *           [-grid]                    Filled with -units smiles that light
  *                                      up as the number counts. Set its
  *                                      columns in Webflow (a CSS grid).
+ *                                      Any smiles already inside, shown
+ *                                      without JavaScript, are replaced.
  *   [-smile]                           Anywhere: one smile icon, e.g. the
  *                                      key beside each stat. Give it a width.
  *
@@ -144,6 +149,7 @@
     const canvas = document.createElement("canvas");
     canvas.className = "impact-chapter-field";
     canvas.setAttribute("aria-hidden", "true");
+    stage.querySelectorAll("[data-impact-chapter-field]").forEach((el) => (el.style.display = "none"));
     stage.prepend(canvas);
     const ctx = canvas.getContext("2d");
     let cells = [];

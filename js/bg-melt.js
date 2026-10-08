@@ -28,6 +28,12 @@
  * <html>, so overlays such as edge fades can follow it:
  *   background-image: linear-gradient(90deg, var(--bg-melt, #fff), transparent)
  *
+ * While the colour is dark, <html> also carries the bg-melt-dark class, and
+ * any [data-bg-melt-invert] element flips to its negative and screens onto
+ * the background. Use it on dark-on-white artwork that multiplies onto light
+ * colours (e.g. grey client logos with mix-blend-mode: multiply), so it
+ * reads light-on-dark instead of vanishing.
+ *
  * With reduced motion each colour switches at once as its section's top
  * passes the middle of the screen.
  */
@@ -36,11 +42,14 @@
 
   const debug = window.WebflowFramework?.debug || function () {};
 
-  const CSS = `html.bg-melt [data-bg-melt]{background-color:transparent!important}`;
+  const CSS = `html.bg-melt [data-bg-melt]{background-color:transparent!important}
+html.bg-melt-dark [data-bg-melt-invert]{filter:invert(1);mix-blend-mode:screen}`;
 
   const BAND_START = 0.56;
   const BAND_LENGTH = 0.14;
   const REDUCED_SWITCH = 0.5;
+  // Relative luminance below which the colour counts as dark
+  const DARK_LUMINANCE = 0.18;
 
   function injectStyles() {
     if (document.getElementById("bg-melt-styles")) return;
@@ -89,6 +98,15 @@
     return Math.min(Math.max(value, 0), 1);
   }
 
+  // WCAG relative luminance, 0 (black) to 1 (white)
+  function luminance([r, g, b]) {
+    const linear = (channel) => {
+      const c = channel / 255;
+      return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+    };
+    return 0.2126 * linear(r) + 0.7152 * linear(g) + 0.0722 * linear(b);
+  }
+
   function createMelt(sections, reducedMotion) {
     const root = document.documentElement;
     const body = document.body;
@@ -124,6 +142,7 @@
         last = css;
         body.style.backgroundColor = css;
         root.style.setProperty("--bg-melt", css);
+        root.classList.toggle("bg-melt-dark", luminance(color) < DARK_LUMINANCE);
       }
     }
 
@@ -144,7 +163,7 @@
       cancelAnimationFrame(frame);
       window.removeEventListener("scroll", update);
       window.removeEventListener("resize", update);
-      root.classList.remove("bg-melt");
+      root.classList.remove("bg-melt", "bg-melt-dark");
       body.style.backgroundColor = previousBody;
       root.style.removeProperty("--bg-melt");
     };

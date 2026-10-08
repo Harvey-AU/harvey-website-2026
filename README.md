@@ -8,10 +8,10 @@ These are site-specific, so they live here rather than in [webflow-framework](ht
 | File | What it does | Hooks |
 | --- | --- | --- |
 | `js/smooth-scroll.js` | Site-wide smooth scroll via Lenis 1.3.26 (loaded from jsDelivr), driven by the GSAP ticker when GSAP is present. | `data-lerp` on the script tag (default 0.08) |
-| `js/parallax-columns.js` | Hero grid of looping columns with scroll parallax and mouse pan. | `[data-parallax-columns]` section |
+| `js/parallax-columns.js` | Hero grid of looping columns with scroll parallax and mouse pan, optionally shrinking from full width into the container as it scrolls away. | `[data-parallax-columns]` section, `data-parallax-columns-shrink` |
 | `js/pinned-steps.js` | Pinned numbered steps with image wipes and optional per-step colours (needs GSAP + ScrollTrigger). | `[data-pinned-steps]` section, `data-pinned-steps-bg/-fg/-sub` on steps |
 | `js/marquee.js` | Seamless endless row at a constant speed, with optional odd/even item split and scroll-velocity boost. | `[data-marquee]` strip, `data-marquee-items`, `data-marquee-boost` |
-| `js/bg-melt.js` | Page background that melts between section colours as each section scrolls up. | `[data-bg-melt]` sections |
+| `js/bg-melt.js` | Page background that melts between section colours as each section scrolls up, flipping marked artwork to light-on-dark over dark colours. | `[data-bg-melt]` sections, `[data-bg-melt-invert]` artwork |
 | `js/nav-reveal.js` | Header that hides on scroll down and reveals on scroll up (not used yet). | `[data-nav-reveal]` header |
 
 Each file's header comment documents its full markup and settings.

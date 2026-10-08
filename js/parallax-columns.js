@@ -68,6 +68,22 @@
  *                                      right edge the last column lines up
  *                                      with the grid's padding. Mouse only;
  *                                      touch screens see it centred.
+ *   -shrink                            Shrink the grid into a rounded frame
+ *                                      as the page scrolls past it. From the
+ *                                      grid's top reaching the top of the
+ *                                      screen until its bottom comes on
+ *                                      screen, it narrows from full width to
+ *                                      the hero's width (the container the
+ *                                      rest of the page sits in), then keeps
+ *                                      shrinking as it leaves. A selector
+ *                                      (e.g. -shrink=".container-large")
+ *                                      matches that element's width instead.
+ *                                      The pan still works while shrunk.
+ *   -shrink-end="0.9"                  How much further it shrinks past that
+ *                                      width by the time its bottom is a
+ *                                      fifth of the way down the screen.
+ *   -shrink-radius="24"                Corner radius of the frame, in pixels,
+ *                                      once shrunk to the container width.
  *
  * With reduced motion the columns keep their stagger but nothing moves,
  * fades or autoplays.
@@ -104,6 +120,11 @@
   // Seconds for the grid to catch up with the pointer when panning (time
   // constant)
   const PAN_LAG = 0.45;
+  // shrink: the least scroll, in screen heights, the grid takes to narrow
+  // to the container width, and where on the screen, as a share of its
+  // height, the grid's bottom ends the shrink
+  const SHRINK_MIN_SPAN = 0.5;
+  const SHRINK_END_AT = 0.2;
 
   const EASE_OUT = "cubic-bezier(.215,.61,.355,1)"; // power3.out
   const CSS = `
@@ -111,6 +132,7 @@
 [data-parallax-columns-hero]{position:relative}
 [data-parallax-columns].is-parallax-columns-motion [data-parallax-columns-hero]{position:sticky;top:0}
 [data-parallax-columns-grid]{position:relative;z-index:1}
+[data-parallax-columns].is-parallax-columns-shrink [data-parallax-columns-grid]{overflow:clip;transform-origin:50% 0;will-change:scale}
 [data-parallax-columns].is-parallax-columns-motion [data-parallax-columns-hero],[data-parallax-columns].is-parallax-columns-motion [data-parallax-columns-grid]{opacity:0;transform:translate3d(0,40px,0)}
 [data-parallax-columns].is-parallax-columns-in [data-parallax-columns-hero],[data-parallax-columns].is-parallax-columns-in [data-parallax-columns-grid]{opacity:1;transform:none;transition:opacity 1s ${EASE_OUT},transform 1s ${EASE_OUT}}
 [data-parallax-columns].is-parallax-columns-in [data-parallax-columns-hero]{transition-delay:.25s}
@@ -239,6 +261,25 @@
     const motion = !reducedMotion && settings.strength > 0;
 
     if (motion) section.classList.add("is-parallax-columns-motion");
+
+    // Shrink: the target width's element, how far it shrinks overall, and
+    // the grid's place and the scale it narrows to, in pixels
+    const shrinkValue = section.getAttribute("data-parallax-columns-shrink");
+    const shrink =
+      motion && shrinkValue !== null && shrinkValue !== "false"
+        ? {
+            target: shrinkValue && shrinkValue !== "true" ? document.querySelector(shrinkValue) : section.querySelector("[data-parallax-columns-hero]"),
+            end: clamp(numberAttr(section, "data-parallax-columns-shrink-end", 0.9), 0.1, 1),
+            radius: Math.max(0, numberAttr(section, "data-parallax-columns-shrink-radius", 24)),
+            to: 1,
+            top: 0,
+            height: 0,
+          }
+        : null;
+    if (shrink && !shrink.target) {
+      debug("parallax-columns", "init", `No element matches -shrink="${shrinkValue}"`, "warn");
+    }
+    if (shrink && shrink.target) section.classList.add("is-parallax-columns-shrink");
 
     // Videos play only while on screen, and never with reduced motion
     const videoObserver =
@@ -536,6 +577,11 @@
       gridHeight = Math.max(...columns.map((column) => column.contentHeight));
       const extra = columns[0].top + gridHeight - (listTop + list.offsetHeight);
       if (extra > 0) list.style.marginBottom = `${extra}px`;
+      if (shrink && shrink.target) {
+        shrink.to = clamp(shrink.target.offsetWidth / Math.max(grid.offsetWidth, 1), 0.1, 1);
+        shrink.top = offsetWithin(grid, section, "y");
+        shrink.height = grid.offsetHeight;
+      }
       render();
       debug("parallax-columns", "layout", `${columns.length} columns, ${items.length} items`, "info");
     }
@@ -581,6 +627,22 @@
       });
     }
 
+    // Narrow the grid to the container width while it scrolls up the
+    // screen, then on down by -shrink-end as it leaves. Scaled rather than
+    // resized, so the columns inside keep their layout and motion.
+    function renderShrink(sectionTop) {
+      const vh = viewportHeight;
+      const top = sectionTop + shrink.top;
+      const span = Math.max(shrink.height - vh, vh * SHRINK_MIN_SPAN);
+      const narrow = clamp(-top / span, 0, 1);
+      const leave = clamp((-top - span) / Math.max(vh * (1 - SHRINK_END_AT), 1), 0, 1);
+      const scale = leave > 0 ? shrink.to * (1 - (1 - shrink.end) * leave) : 1 - (1 - shrink.to) * easeInOut(narrow);
+      // The corners round in as it narrows, and stay the same size on screen
+      const radius = shrink.to < 1 ? shrink.radius * clamp((1 - scale) / (1 - shrink.to), 0, 1) : shrink.radius * narrow;
+      grid.style.scale = scale < 1 ? `${scale}` : "";
+      grid.style.borderRadius = radius > 0 ? `${radius / scale}px` : "";
+    }
+
     // Scroll-linked motion, same curves as this.design's ScrollTrigger setup
     function render() {
       if (!motion) {
@@ -588,6 +650,7 @@
         return;
       }
       const sectionTop = section.getBoundingClientRect().top;
+      if (shrink && shrink.target) renderShrink(sectionTop);
       const vw = viewportWidth;
       const vh = viewportHeight;
       const strength = settings.strength;

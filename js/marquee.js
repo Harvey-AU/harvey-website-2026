@@ -27,10 +27,13 @@
  *                                      ("even") items of each panel, so two
  *                                      rows can split one list. Items are
  *                                      [data-marquee-item] or CMS items.
- *   -boost                             Speed up briefly while the page
- *                                      scrolls, up to double speed. Needs
- *                                      smooth-scroll.js. Off below 992px.
- *                                      -boost="false" turns it off, so a
+ *   -boost                             Speed up while the page scrolls, by
+ *                                      up to 800 pixels per second on top of
+ *                                      -speed, so a fast flick races the row
+ *                                      along. Needs smooth-scroll.js. Off
+ *                                      below 992px. A number scales it
+ *                                      (e.g. -boost="0.5" for half as much),
+ *                                      and -boost="false" turns it off, so a
  *                                      component prop can drive it.
  *
  * With reduced motion the row stays still and never boosts.
@@ -41,9 +44,11 @@
   const debug = window.WebflowFramework?.debug || function () {};
 
   const DEFAULT_SPEED = 35;
-  const BOOST_PER_VELOCITY = 0.15;
-  const BOOST_MAX = 2;
-  const BOOST_EASE = 0.05;
+  // Extra pixels per second for each pixel per frame the page scrolls, and
+  // the most it adds
+  const BOOST_PER_VELOCITY = 54;
+  const BOOST_MAX = 800;
+  const BOOST_EASE = 0.08;
   const BOOST_MEDIA = "(min-width: 992px)";
 
   const CSS = `
@@ -134,7 +139,7 @@
     if (reducedMotion.addEventListener) reducedMotion.addEventListener("change", scheduleMeasure);
 
     measure();
-    setupBoost(strip, track, reducedMotion);
+    setupBoost(strip, track, speed, reducedMotion);
     debug("marquee", "init", `Ready at ${speed}px/s`, "info");
   }
 
@@ -162,11 +167,13 @@
     document.addEventListener("smoothScrollReady", (event) => callback(event.detail.lenis), { once: true });
   }
 
-  // Scroll velocity nudges the CSS animation's playback rate, eased so it
-  // swells and settles rather than jumps. Capped at double speed.
-  function setupBoost(strip, track, reducedMotion) {
+  // Scroll velocity speeds up the CSS animation's playback rate, eased so
+  // it swells and settles rather than jumps
+  function setupBoost(strip, track, speed, reducedMotion) {
     const value = strip.getAttribute("data-marquee-boost");
     if (value === null || value === "false") return;
+    const scaleValue = parseFloat(value);
+    const scale = Number.isFinite(scaleValue) && scaleValue > 0 ? scaleValue : 1;
 
     const wide = window.matchMedia(BOOST_MEDIA);
     let lenis = null;
@@ -181,14 +188,14 @@
     function tick() {
       frame = 0;
       const active = wide.matches && !reducedMotion.matches;
-      const target = active ? Math.min(Math.abs(lenis.velocity || 0) * BOOST_PER_VELOCITY, BOOST_MAX) : 0;
+      const target = active ? Math.min(Math.abs(lenis.velocity || 0) * BOOST_PER_VELOCITY, BOOST_MAX) * scale : 0;
       boost += (target - boost) * BOOST_EASE;
-      if (!active || (target === 0 && boost < 0.01)) {
+      if (!active || (target === 0 && boost < 0.5)) {
         boost = 0;
         setRate(1);
         return;
       }
-      setRate(1 + boost / BOOST_MAX);
+      setRate(1 + boost / speed);
       frame = requestAnimationFrame(tick);
     }
 

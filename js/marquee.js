@@ -28,9 +28,9 @@
  *                                      rows can split one list. Items are
  *                                      [data-marquee-item] or CMS items.
  *   -boost                             Speed up while the page scrolls, by
- *                                      up to 800 pixels per second on top of
- *                                      -speed, so a fast flick races the row
- *                                      along. Needs smooth-scroll.js. Off
+ *                                      up to 60 pixels per second on top of
+ *                                      -speed, so the row picks up a little
+ *                                      with the page. Needs smooth-scroll.js. Off
  *                                      below 992px. A number scales it
  *                                      (e.g. -boost="0.5" for half as much),
  *                                      and -boost="false" turns it off, so a
@@ -46,8 +46,8 @@
   const DEFAULT_SPEED = 35;
   // Extra pixels per second for each pixel per frame the page scrolls, and
   // the most it adds
-  const BOOST_PER_VELOCITY = 54;
-  const BOOST_MAX = 800;
+  const BOOST_PER_VELOCITY = 4;
+  const BOOST_MAX = 60;
   const BOOST_EASE = 0.08;
   const BOOST_MEDIA = "(min-width: 992px)";
 

@@ -39,9 +39,10 @@
  *   -intro="loop"                      Motion while the page sits at the top
  *                                      (loop by default, "none" for none),
  *                                      so the grid is alive before anyone
- *                                      scrolls. Scrolling settles the columns
- *                                      back into line before the parallax
- *                                      takes over; back at the top it resumes.
+ *                                      scrolls. Scrolling a fifth of a screen
+ *                                      down settles the columns back into
+ *                                      line as the parallax takes over; back
+ *                                      near the top it resumes.
  *                                        drift  Columns bob up and down.
  *                                        loop   Columns run as endless
  *                                               conveyors, alternating
@@ -109,8 +110,9 @@
   const SPREAD = 1.5;
 
   const INTROS = ["drift", "loop", "step", "reels"];
-  // Scroll position, in pixels, still treated as the top of the page
-  const TOP_SLACK = 2;
+  // Scroll, in screen heights, still treated as the top of the page, so the
+  // intro keeps running for the first stretch of scrolling
+  const TOP_SLACK = 0.2;
   // drift: how far each column sinks, in column widths, how long a bob
   // takes, and where in it each column starts
   const DRIFT_DEPTH = 0.35;
@@ -123,7 +125,7 @@
   const STEP_DURATION = 0.9;
   const STEP_STAGGER = 0.12;
   // How long a moving column takes to glide into line once scrolling starts
-  const SETTLE_DURATION = 1.1;
+  const SETTLE_DURATION = 1.8;
   // Seconds for the grid to catch up with the pointer when panning (time
   // constant)
   const PAN_LAG = 0.45;
@@ -367,7 +369,7 @@
     }
 
     function isAtTop() {
-      return window.scrollY <= TOP_SLACK;
+      return window.scrollY <= TOP_SLACK * window.innerHeight;
     }
 
     // Move a column to a whole number of items along, starting at `start`.

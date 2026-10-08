@@ -27,6 +27,11 @@
  * Load standalone on pages that need it (not part of the framework's main.js):
  *   <script src="https://cdn.jsdelivr.net/gh/Harvey-AU/harvey-website-2026@1.6.0/js/impact-chapter.js" defer></script>
  *
+ * For the Designer and no-JS visitors, Webflow can also hold a static
+ * stand-in: grey dashes in a [-field] element and amber smiles drawn by
+ * class on the keys and grid units. Once the script runs it hides the
+ * [-field], refills the grids and draws the smiles itself.
+ *
  * Markup (attribute prefix data-impact-chapter):
  *   [data-impact-chapter]              Section component, the scroll track.
  *                                      The script sets its height (420vh,
@@ -34,6 +39,9 @@
  *     [-stage]                         Full-screen stage, made sticky. The
  *                                      canvas field goes in as its first
  *                                      child, behind everything else.
+ *       [-field]                       Optional: a static dash background
+ *                                      for the Designer and no-JS. Hidden
+ *                                      once the canvas field takes over.
  *       [-copy]                        Optional: the statement's container,
  *                                      used to fit the large statement.
  *                                      Defaults to the statement's parent.
@@ -70,6 +78,7 @@
   const CSS = `
 [data-impact-chapter-stage]{position:relative;isolation:isolate}
 .impact-chapter-field{position:absolute;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none}
+.is-impact-chapter-pinned [data-impact-chapter-field],.is-impact-chapter-static [data-impact-chapter-field]{display:none}
 [data-impact-chapter-unit],[data-impact-chapter-smile]{display:block;aspect-ratio:27/17.2;background:var(--impact-chapter-smile,#ffb200);-webkit-mask:${SMILE_MASK} center/contain no-repeat;mask:${SMILE_MASK} center/contain no-repeat}
 [data-impact-chapter].is-impact-chapter-pinned{position:relative;height:420vh}
 .is-impact-chapter-pinned [data-impact-chapter-stage]{position:sticky;top:0;height:100vh;overflow:hidden}

@@ -28,6 +28,12 @@ Scripts load from jsDelivr, pinned to a release tag:
 <script src="https://cdn.jsdelivr.net/gh/Harvey-AU/harvey-website-2026@1.0.0/js/parallax-columns.js" defer></script>
 ```
 
+## Developing
+
+`npm run dev` serves the live site at http://localhost:4321 (or the next free port) with its jsDelivr scripts swapped for the local `js/` files.
+The page reloads when a script changes.
+Set `SITE` to preview another Webflow domain.
+
 ## Releasing a change
 
 1. Commit and push to `main`.

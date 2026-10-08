@@ -56,6 +56,9 @@
   // Share of the pin spent lighting words; the rest holds the lit text
   // before the section lets go
   const REVEAL_SHARE = 0.8;
+  // How many words each word's fade overlaps, so the light rolls across the
+  // text as a soft wave rather than switching words on one at a time
+  const WAVE_WIDTH = 5;
 
   function numberAttr(el, name, fallback) {
     const value = parseFloat(el.getAttribute(name));
@@ -117,7 +120,9 @@
     // Words across every text, in reading order, so one stagger runs through
     // them all
     const words = texts.flatMap(splitWords);
-    const stagger = 1 / words.length;
+    // Gap between word starts, sized so the last word finishes lighting at
+    // the end of the reveal
+    const step = REVEAL_SHARE / (words.length - 1 + WAVE_WIDTH);
 
     mm.add(`(min-width: ${minWidth}px)`, () => {
       const pin = window.ScrollTrigger.create({
@@ -142,7 +147,7 @@
           refreshPriority: 1,
         },
       });
-      tl.fromTo(words, { opacity: from }, { opacity: 1, duration: stagger, stagger: stagger * REVEAL_SHARE }, 0);
+      tl.fromTo(words, { opacity: from }, { opacity: 1, duration: step * WAVE_WIDTH, stagger: step }, 0);
       tl.to({}, { duration: 1 - REVEAL_SHARE }, ">");
 
       if (fades.length) {

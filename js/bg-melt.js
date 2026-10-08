@@ -24,6 +24,10 @@
  * Other scripts can steer a section's colour at runtime by setting
  * element._meltColor (pinned-steps.js does this for its per-step colours).
  *
+ * The current colour is also exposed as the --bg-melt custom property on
+ * <html>, so overlays such as edge fades can follow it:
+ *   background-image: linear-gradient(90deg, var(--bg-melt, #fff), transparent)
+ *
  * With reduced motion each colour switches at once as its section's top
  * passes the middle of the screen.
  */
@@ -119,6 +123,7 @@
       if (css !== last) {
         last = css;
         body.style.backgroundColor = css;
+        root.style.setProperty("--bg-melt", css);
       }
     }
 
@@ -141,6 +146,7 @@
       window.removeEventListener("resize", update);
       root.classList.remove("bg-melt");
       body.style.backgroundColor = previousBody;
+      root.style.removeProperty("--bg-melt");
     };
   }
 

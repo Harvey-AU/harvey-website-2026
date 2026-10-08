@@ -45,6 +45,18 @@
  *
  * Settings on [data-pinned-steps]:
  *   -min-width="992"                   Narrowest screen, in px, that pins.
+ *   -theme-target=".section_approach"  Element whose colours the steps set
+ *                                      (default: the closest section).
+ * Settings on [-step], all optional (colours):
+ *   -bg="#ecebe7"                      Background of the theme target.
+ *   -fg="#1e1e1e"                      Sets --pinned-steps-fg on it.
+ *   -sub="#3a3935"                     Sets --pinned-steps-sub on it.
+ *                                      On desktop the colours blend from
+ *                                      step to step with the image wipe.
+ *                                      Below the breakpoint the first
+ *                                      step's colours hold. With bg-melt.js
+ *                                      the background goes to the melt
+ *                                      instead of the target itself.
  * Settings on [-heading]:
  *   -from="#aaa69d"                    Colour the words start at. They end
  *                                      at the heading's own colour.
@@ -110,6 +122,58 @@
     return marked.length ? [...marked] : [...step.children];
   }
 
+  const THEME_KEYS = ["bg", "fg", "sub"];
+
+  // Per-step colours, blended between neighbouring steps by a fractional
+  // step index. Returns null when no step sets a colour.
+  function createTheme(root, steps) {
+    const gsap = window.gsap;
+    const themes = steps.map((step) => {
+      const theme = {};
+      THEME_KEYS.forEach((key) => (theme[key] = step.getAttribute(`data-pinned-steps-${key}`) || null));
+      return theme;
+    });
+    const used = THEME_KEYS.filter((key) => themes.some((theme) => theme[key]));
+    if (!used.length) return null;
+    // A step without a colour keeps the one before it (or the first set)
+    used.forEach((key) => {
+      let last = themes.find((theme) => theme[key])[key];
+      themes.forEach((theme) => {
+        theme[key] = theme[key] || last;
+        last = theme[key];
+      });
+    });
+
+    const selector = root.getAttribute("data-pinned-steps-theme-target");
+    const target = (selector && document.querySelector(selector)) || root.closest("section") || root;
+    const previousBg = target.style.backgroundColor;
+
+    function paint(index) {
+      const i = Math.min(Math.max(index, 0), themes.length - 1);
+      const a = themes[Math.floor(i)];
+      const b = themes[Math.ceil(i)];
+      const t = i - Math.floor(i);
+      const mix = (key) => (t === 0 ? a[key] : gsap.utils.interpolate(a[key], b[key], t));
+      if (used.includes("fg")) target.style.setProperty("--pinned-steps-fg", mix("fg"));
+      if (used.includes("sub")) target.style.setProperty("--pinned-steps-sub", mix("sub"));
+      if (used.includes("bg")) {
+        // bg-melt.js reads this for the body; its CSS keeps the target clear
+        const bg = mix("bg");
+        target._meltColor = bg;
+        target.style.backgroundColor = bg;
+      }
+    }
+
+    function clear() {
+      delete target._meltColor;
+      target.style.removeProperty("--pinned-steps-fg");
+      target.style.removeProperty("--pinned-steps-sub");
+      target.style.backgroundColor = previousBg;
+    }
+
+    return { paint, clear };
+  }
+
   function createPinnedSteps(root, mm, reducedMotion) {
     const gsap = window.gsap;
     const list = root.querySelector("[data-pinned-steps-list]");
@@ -121,6 +185,7 @@
       return;
     }
     const minWidth = numberAttr(root, "data-pinned-steps-min-width", 992);
+    const theme = createTheme(root, steps.slice(0, count));
 
     mm.add(`(min-width: ${minWidth}px)`, () => {
       list.classList.add("is-pinned-steps-stacked");
@@ -128,11 +193,17 @@
       const texts = steps.slice(0, count).map(textsOf);
       const imgs = frames.slice(0, count).map((frame) => frame.querySelector("img"));
 
+      const proxy = { i: 0 };
+      const paint = theme ? () => theme.paint(proxy.i) : null;
+      if (paint) paint();
+
       gsap.set(frames.slice(1, count), { clipPath: CLIP_HIDDEN });
       texts.slice(1).forEach((nodes) => gsap.set(nodes, { autoAlpha: 0, y: reducedMotion ? 0 : 20 }));
 
       const tl = gsap.timeline({
         defaults: { ease: "none" },
+        // Repaint on every render so the colours follow scrubbing both ways
+        onUpdate: paint || undefined,
         scrollTrigger: {
           trigger: root,
           start: "center center",
@@ -158,8 +229,10 @@
             .set(frames[i], { clipPath: CLIP_SHOWN }, i - 0.5)
             .set(texts[i], { autoAlpha: 1 }, i - 0.5)
             .addLabel("p" + i, i);
+          if (paint) tl.set(proxy, { i }, i - 0.5);
           continue;
         }
+        if (paint) tl.to(proxy, { i, duration: 0.5, ease: "power2.inOut" }, at);
         tl.to(texts[i - 1], { autoAlpha: 0, y: -20, duration: 0.2, ease: "power1.in" }, at)
           .to(frames[i], { clipPath: CLIP_SHOWN, duration: 0.5, ease: "power2.inOut" }, at);
         if (imgs[i]) tl.fromTo(imgs[i], { scale: 1.15 }, { scale: 1, duration: 0.5, ease: "power2.out" }, at);
@@ -170,8 +243,17 @@
       return () => {
         list.classList.remove("is-pinned-steps-stacked");
         restick();
+        if (theme) theme.clear();
       };
     });
+
+    // Stacked steps all show at once, so the first step's colours hold
+    if (theme) {
+      mm.add(`(max-width: ${minWidth - 0.02}px)`, () => {
+        theme.paint(0);
+        return theme.clear;
+      });
+    }
 
     if (reducedMotion) return;
 

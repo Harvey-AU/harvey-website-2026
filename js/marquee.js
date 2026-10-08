@@ -23,8 +23,17 @@
  *   -speed="35"                        Pixels per second.
  *   -direction="left"                  "left" or "right".
  *   -pause="hover"                     Pause while the pointer is over it.
+ *   -items="odd"                       Show only the odd ("odd") or even
+ *                                      ("even") items of each panel, so two
+ *                                      rows can split one list. Items are
+ *                                      [data-marquee-item] or CMS items.
+ *   -boost                             Speed up briefly while the page
+ *                                      scrolls, up to double speed. Needs
+ *                                      smooth-scroll.js. Off below 992px.
+ *                                      -boost="false" turns it off, so a
+ *                                      component prop can drive it.
  *
- * With reduced motion the row stays still.
+ * With reduced motion the row stays still and never boosts.
  */
 (function () {
   "use strict";
@@ -32,6 +41,10 @@
   const debug = window.WebflowFramework?.debug || function () {};
 
   const DEFAULT_SPEED = 35;
+  const BOOST_PER_VELOCITY = 0.15;
+  const BOOST_MAX = 2;
+  const BOOST_EASE = 0.05;
+  const BOOST_MEDIA = "(min-width: 992px)";
 
   const CSS = `
 [data-marquee]{overflow:hidden}
@@ -60,6 +73,8 @@
 
     let distance = 0;
     let frame = 0;
+
+    splitItems(strip, track);
 
     // One loop is the space from the start of one copy to the start of the
     // next, including any gap between them. Moving the track by exactly that
@@ -119,7 +134,72 @@
     if (reducedMotion.addEventListener) reducedMotion.addEventListener("change", scheduleMeasure);
 
     measure();
+    setupBoost(strip, track, reducedMotion);
     debug("marquee", "init", `Ready at ${speed}px/s`, "info");
+  }
+
+  // Hide the other half of every panel's items before measuring, so the
+  // clones made later inherit the split.
+  function splitItems(strip, track) {
+    const parity = strip.getAttribute("data-marquee-items");
+    if (parity !== "odd" && parity !== "even") return;
+    const keep = parity === "odd" ? 0 : 1;
+    Array.from(track.children).forEach((panel) => {
+      let items = panel.querySelectorAll("[data-marquee-item]");
+      if (!items.length) items = panel.querySelectorAll(".w-dyn-item");
+      items.forEach((item, index) => {
+        if (index % 2 !== keep) item.style.display = "none";
+      });
+    });
+  }
+
+  function getLenis(callback) {
+    const lenis = window.WebflowFramework?.lenis;
+    if (lenis) {
+      callback(lenis);
+      return;
+    }
+    document.addEventListener("smoothScrollReady", (event) => callback(event.detail.lenis), { once: true });
+  }
+
+  // Scroll velocity nudges the CSS animation's playback rate, eased so it
+  // swells and settles rather than jumps. Capped at double speed.
+  function setupBoost(strip, track, reducedMotion) {
+    const value = strip.getAttribute("data-marquee-boost");
+    if (value === null || value === "false") return;
+
+    const wide = window.matchMedia(BOOST_MEDIA);
+    let lenis = null;
+    let boost = 0;
+    let frame = 0;
+
+    function setRate(rate) {
+      const animation = track.getAnimations ? track.getAnimations()[0] : null;
+      if (animation) animation.playbackRate = rate;
+    }
+
+    function tick() {
+      frame = 0;
+      const active = wide.matches && !reducedMotion.matches;
+      const target = active ? Math.min(Math.abs(lenis.velocity || 0) * BOOST_PER_VELOCITY, BOOST_MAX) : 0;
+      boost += (target - boost) * BOOST_EASE;
+      if (!active || (target === 0 && boost < 0.01)) {
+        boost = 0;
+        setRate(1);
+        return;
+      }
+      setRate(1 + boost / BOOST_MAX);
+      frame = requestAnimationFrame(tick);
+    }
+
+    getLenis((instance) => {
+      if (!instance || typeof instance.on !== "function") return;
+      lenis = instance;
+      lenis.on("scroll", () => {
+        if (!frame && wide.matches && !reducedMotion.matches) frame = requestAnimationFrame(tick);
+      });
+      debug("marquee", "boost", "Scroll boost on", "info");
+    });
   }
 
   function init() {

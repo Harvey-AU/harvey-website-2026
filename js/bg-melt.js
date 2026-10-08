@@ -34,6 +34,12 @@
  * colours (e.g. grey client logos with mix-blend-mode: multiply), so it
  * reads light-on-dark instead of vanishing.
  *
+ * Text can follow along too. Mark it [data-bg-melt-text] and its colour
+ * melts with the background, from each section's text colour: set it with
+ * data-bg-melt-fg="#1e1e1e" on the section, or leave it out to take light
+ * text (#f2f1ec) on dark colours and dark text (#1e1e1e) on light ones. The
+ * current text colour is also exposed as --bg-melt-fg on <html>.
+ *
  * With reduced motion each colour switches at once as its section's top
  * passes the middle of the screen.
  */
@@ -43,13 +49,17 @@
   const debug = window.WebflowFramework?.debug || function () {};
 
   const CSS = `html.bg-melt [data-bg-melt]{background-color:transparent!important}
-html.bg-melt-dark [data-bg-melt-invert]{filter:invert(1);mix-blend-mode:screen}`;
+html.bg-melt-dark [data-bg-melt-invert]{filter:invert(1);mix-blend-mode:screen}
+html.bg-melt [data-bg-melt-text]{color:var(--bg-melt-fg)}`;
 
   const BAND_START = 0.56;
   const BAND_LENGTH = 0.14;
   const REDUCED_SWITCH = 0.5;
   // Relative luminance below which the colour counts as dark
   const DARK_LUMINANCE = 0.18;
+  // Default text colours over dark and light backgrounds
+  const LIGHT_TEXT = [242, 241, 236, 1];
+  const DARK_TEXT = [30, 30, 30, 1];
 
   function injectStyles() {
     if (document.getElementById("bg-melt-styles")) return;
@@ -115,6 +125,7 @@ html.bg-melt-dark [data-bg-melt-invert]{filter:invert(1);mix-blend-mode:screen}`
     // Read each section's own colour before the class clears it
     const fallbacks = sections.map((el) => parseColor(el.getAttribute("data-bg-melt")) || solidColor(el));
     const base = solidColor(body) || [255, 255, 255, 1];
+    const baseText = parseColor(getComputedStyle(body).color) || DARK_TEXT;
 
     root.classList.add("bg-melt");
 
@@ -125,9 +136,18 @@ html.bg-melt-dark [data-bg-melt-invert]{filter:invert(1);mix-blend-mode:screen}`
       return parseColor(el._meltColor) || fallbacks[i];
     }
 
+    function textOf(el, target) {
+      return (
+        parseColor(el._meltFg) ||
+        parseColor(el.getAttribute("data-bg-melt-fg")) ||
+        (luminance(target) < DARK_LUMINANCE ? LIGHT_TEXT : DARK_TEXT)
+      );
+    }
+
     function update() {
       const vh = window.innerHeight;
       let color = base;
+      let text = baseText;
       sections.forEach((el, i) => {
         const target = colorOf(el, i);
         if (!target) return;
@@ -135,13 +155,18 @@ html.bg-melt-dark [data-bg-melt-invert]{filter:invert(1);mix-blend-mode:screen}`
         const p = reducedMotion
           ? top <= vh * REDUCED_SWITCH ? 1 : 0
           : clamp01((vh * BAND_START - top) / (vh * BAND_LENGTH));
-        if (p > 0) color = mix(color, target, p);
+        if (p > 0) {
+          color = mix(color, target, p);
+          text = mix(text, textOf(el, target), p);
+        }
       });
       const css = toCss(color);
-      if (css !== last) {
-        last = css;
+      const textCss = toCss(text);
+      if (css + textCss !== last) {
+        last = css + textCss;
         body.style.backgroundColor = css;
         root.style.setProperty("--bg-melt", css);
+        root.style.setProperty("--bg-melt-fg", textCss);
         root.classList.toggle("bg-melt-dark", luminance(color) < DARK_LUMINANCE);
       }
     }
@@ -166,6 +191,7 @@ html.bg-melt-dark [data-bg-melt-invert]{filter:invert(1);mix-blend-mode:screen}`
       root.classList.remove("bg-melt", "bg-melt-dark");
       body.style.backgroundColor = previousBody;
       root.style.removeProperty("--bg-melt");
+      root.style.removeProperty("--bg-melt-fg");
     };
   }
 

@@ -69,21 +69,28 @@
  *                                      with the grid's padding. Mouse only;
  *                                      touch screens see it centred.
  *   -shrink                            Shrink the grid into a rounded frame
- *                                      as the page scrolls past it. From the
- *                                      grid's top reaching the top of the
- *                                      screen until its bottom comes on
- *                                      screen, it narrows from full width to
+ *                                      as the page scrolls past it. From a
+ *                                      little after the grid's top reaches
+ *                                      the top of the screen until its
+ *                                      bottom comes on screen (at least
+ *                                      most of a screen height of
+ *                                      scrolling), it narrows from full
+ *                                      width to
  *                                      the hero's width (the container the
  *                                      rest of the page sits in), then keeps
  *                                      shrinking as it leaves. A selector
  *                                      (e.g. -shrink=".container-large")
  *                                      matches that element's width instead.
- *                                      The pan still works while shrunk.
+ *                                      It shrinks towards its bottom edge,
+ *                                      so whatever follows stays snug under
+ *                                      it. The pan still works while shrunk.
  *   -shrink-end="0.9"                  How much further it shrinks past that
  *                                      width by the time its bottom is a
  *                                      fifth of the way down the screen.
  *   -shrink-radius="24"                Corner radius of the frame, in pixels,
  *                                      once shrunk to the container width.
+ *   -shrink-border="#e8e6df"           Colour of a 1px border that fades in
+ *                                      round the frame as it shrinks.
  *
  * With reduced motion the columns keep their stagger but nothing moves,
  * fades or autoplays.
@@ -120,10 +127,12 @@
   // Seconds for the grid to catch up with the pointer when panning (time
   // constant)
   const PAN_LAG = 0.45;
-  // shrink: the least scroll, in screen heights, the grid takes to narrow
-  // to the container width, and where on the screen, as a share of its
-  // height, the grid's bottom ends the shrink
-  const SHRINK_MIN_SPAN = 0.5;
+  // shrink: scroll, in screen heights, held at full width before narrowing,
+  // the least scroll the grid takes to narrow to the container width, and
+  // where on the screen, as a share of its height, the grid's bottom ends
+  // the shrink
+  const SHRINK_DELAY = 0.2;
+  const SHRINK_MIN_SPAN = 0.9;
   const SHRINK_END_AT = 0.2;
 
   const EASE_OUT = "cubic-bezier(.215,.61,.355,1)"; // power3.out
@@ -132,7 +141,7 @@
 [data-parallax-columns-hero]{position:relative}
 [data-parallax-columns].is-parallax-columns-motion [data-parallax-columns-hero]{position:sticky;top:0}
 [data-parallax-columns-grid]{position:relative;z-index:1}
-[data-parallax-columns].is-parallax-columns-shrink [data-parallax-columns-grid]{overflow:clip;transform-origin:50% 0;will-change:scale}
+[data-parallax-columns].is-parallax-columns-shrink [data-parallax-columns-grid]{overflow:clip;transform-origin:50% 100%;will-change:scale}
 [data-parallax-columns].is-parallax-columns-motion [data-parallax-columns-hero],[data-parallax-columns].is-parallax-columns-motion [data-parallax-columns-grid]{opacity:0;transform:translate3d(0,40px,0)}
 [data-parallax-columns].is-parallax-columns-in [data-parallax-columns-hero],[data-parallax-columns].is-parallax-columns-in [data-parallax-columns-grid]{opacity:1;transform:none;transition:opacity 1s ${EASE_OUT},transform 1s ${EASE_OUT}}
 [data-parallax-columns].is-parallax-columns-in [data-parallax-columns-hero]{transition-delay:.25s}
@@ -271,6 +280,7 @@
             target: shrinkValue && shrinkValue !== "true" ? document.querySelector(shrinkValue) : section.querySelector("[data-parallax-columns-hero]"),
             end: clamp(numberAttr(section, "data-parallax-columns-shrink-end", 0.9), 0.1, 1),
             radius: Math.max(0, numberAttr(section, "data-parallax-columns-shrink-radius", 24)),
+            border: section.getAttribute("data-parallax-columns-shrink-border") || "",
             to: 1,
             top: 0,
             height: 0,
@@ -632,15 +642,21 @@
     // resized, so the columns inside keep their layout and motion.
     function renderShrink(sectionTop) {
       const vh = viewportHeight;
-      const top = sectionTop + shrink.top;
+      const top = sectionTop + shrink.top + vh * SHRINK_DELAY;
       const span = Math.max(shrink.height - vh, vh * SHRINK_MIN_SPAN);
       const narrow = clamp(-top / span, 0, 1);
       const leave = clamp((-top - span) / Math.max(vh * (1 - SHRINK_END_AT), 1), 0, 1);
       const scale = leave > 0 ? shrink.to * (1 - (1 - shrink.end) * leave) : 1 - (1 - shrink.to) * easeInOut(narrow);
       // The corners round in as it narrows, and stay the same size on screen
-      const radius = shrink.to < 1 ? shrink.radius * clamp((1 - scale) / (1 - shrink.to), 0, 1) : shrink.radius * narrow;
+      const progress = shrink.to < 1 ? clamp((1 - scale) / (1 - shrink.to), 0, 1) : narrow;
+      const radius = shrink.radius * progress;
       grid.style.scale = scale < 1 ? `${scale}` : "";
       grid.style.borderRadius = radius > 0 ? `${radius / scale}px` : "";
+      // An outline drawn inside the edge rather than a border, so it sits
+      // over the columns and the layout never shifts
+      const ring = shrink.border && progress > 0 ? progress / scale : 0;
+      grid.style.outline = ring ? `${ring}px solid ${shrink.border}` : "";
+      grid.style.outlineOffset = ring ? `${-ring}px` : "";
     }
 
     // Scroll-linked motion, same curves as this.design's ScrollTrigger setup

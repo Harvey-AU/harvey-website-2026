@@ -19,13 +19,13 @@
  * behind the copy, fills each grid with its smiles, and scales the
  * statement up from its styled size for the opening beat.
  *
- * Needs GSAP with ScrollTrigger (and SplitText for the word fade), e.g.
- * from Webflow's GSAP integration. Without them, or with reduced motion,
- * nothing pins: the field sits still and faint behind the copy, grids are
- * full and numbers are final.
+ * Needs GSAP with ScrollTrigger, e.g. from Webflow's GSAP integration. The
+ * script splits the statement's words itself, so SplitText is not needed.
+ * Without GSAP, or with reduced motion, nothing pins: the field sits still
+ * and faint behind the copy, grids are full and numbers are final.
  *
  * Load standalone on pages that need it (not part of the framework's main.js):
- *   <script src="https://cdn.jsdelivr.net/gh/Harvey-AU/harvey-website-2026@1.0.0/js/impact-chapter.js" defer></script>
+ *   <script src="https://cdn.jsdelivr.net/gh/Harvey-AU/harvey-website-2026@1.6.0/js/impact-chapter.js" defer></script>
  *
  * Markup (attribute prefix data-impact-chapter):
  *   [data-impact-chapter]              Section component, the scroll track.
@@ -360,11 +360,7 @@
       debug("impact-chapter", "fire", "Stats playing", "info");
     }
 
-    if (window.SplitText) {
-      const split = new window.SplitText(statement, { type: "words" });
-      split.words.forEach((word) => (word.style.display = "inline-block"));
-      words.fromTo(split.words, { opacity: 0.16 }, { opacity: 1, ease: "none", stagger: 0.02, duration: 0.1 }, 0.02);
-    }
+    words.fromTo(splitWords(statement), { opacity: 0.16 }, { opacity: 1, ease: "none", stagger: 0.02, duration: 0.1 }, 0.02);
     words.to({}, { duration: 1 }, 0);
     root.classList.add("is-impact-chapter-armed");
 
@@ -382,6 +378,33 @@
     });
   }
 
+  // Wraps each word of el's text in a plain span, keeping any inline markup
+  // and the spaces between words as they are
+  function splitWords(el) {
+    const words = [];
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    const nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach((node) => {
+      const parts = node.textContent.split(/(\s+)/);
+      if (parts.length < 2 && !parts[0].trim()) return;
+      const fragment = document.createDocumentFragment();
+      parts.forEach((part) => {
+        if (!part) return;
+        if (!part.trim()) {
+          fragment.appendChild(document.createTextNode(part));
+          return;
+        }
+        const word = document.createElement("span");
+        word.textContent = part;
+        words.push(word);
+        fragment.appendChild(word);
+      });
+      node.parentNode.replaceChild(fragment, node);
+    });
+    return words;
+  }
+
   function start() {
     const gsap = window.gsap;
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -391,7 +414,6 @@
     }
     if (animate) {
       gsap.registerPlugin(window.ScrollTrigger);
-      if (window.SplitText) gsap.registerPlugin(window.SplitText);
       syncLenis();
     }
 
@@ -411,7 +433,7 @@
   function init() {
     try {
       injectStyles();
-      // Wait for web fonts so SplitText and the statement measure final glyphs
+      // Wait for web fonts so the statement measures final glyphs
       const safeStart = () => {
         try {
           start();

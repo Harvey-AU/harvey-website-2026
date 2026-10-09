@@ -5,7 +5,7 @@
  * sub-services and a showcase of case-study work. Pointing at (or focusing)
  * a sub-service crossfades the showcase to the project that best shows it;
  * on touch the first tap selects and the second follows the link. One row is
- * open at a time and the first starts open.
+ * open at a time and all start closed.
  *
  * The layout and the scroll reveals live in Webflow (IX3). Style every panel
  * open, as it should read without JavaScript; this script collapses them and
@@ -150,8 +150,8 @@
       setOpen(row, open);
     }
 
-    rows.forEach((row, i) => {
-      setOpen(row, i === 0);
+    rows.forEach((row) => {
+      setOpen(row, false);
       reset(row);
 
       const trigger = row.querySelector(".services_trigger");

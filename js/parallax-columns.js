@@ -55,10 +55,12 @@
  *                                               stop.
  *                                      A ?parallax-intro= URL parameter
  *                                      overrides it, for comparing them.
- *   -pan="false"                      Turns off the mouse pan, on by
- *                                      default. Once the columns run past
- *                                      the grid's padding, the mouse pans
- *                                      them left and right. Style the CMS
+ *   -pan="false"                      Turns off the pan, on by default.
+ *                                      Once the columns run past the grid's
+ *                                      padding, the mouse pans them left and
+ *                                      right, and on touch screens a
+ *                                      sideways swipe does (vertical swipes
+ *                                      still scroll the page). Style the CMS
  *                                      list wider than the screen (e.g.
  *                                      112%, with a negative left margin of
  *                                      half the extra) so the edge columns
@@ -67,8 +69,8 @@
  *                                      the overflow the grid sits: at its
  *                                      centre the grid is centred, at its
  *                                      right edge the last column lines up
- *                                      with the grid's padding. Mouse only;
- *                                      touch screens see it centred.
+ *                                      with the grid's padding. Touch starts
+ *                                      centred.
  *   -shrink                            Shrink the grid into a rounded frame
  *                                      as the page scrolls past it. From a
  *                                      little after the grid's top reaches
@@ -129,6 +131,10 @@
   // Seconds for the grid to catch up with the pointer when panning (time
   // constant)
   const PAN_LAG = 0.45;
+  // Swipe: pixels a finger moves sideways before the grid follows it, and
+  // seconds of release speed carried on as a fling
+  const SWIPE_THRESHOLD = 6;
+  const SWIPE_FLING = 0.3;
   // shrink: scroll, in screen heights, held at full width before narrowing,
   // the least scroll the grid takes to narrow to the container width, and
   // where on the screen, as a share of its height, the grid's bottom ends
@@ -143,6 +149,7 @@
 [data-parallax-columns-hero]{position:relative}
 [data-parallax-columns].is-parallax-columns-motion [data-parallax-columns-hero]{position:sticky;top:0}
 [data-parallax-columns-grid]{position:relative;z-index:1}
+[data-parallax-columns].is-parallax-columns-swipe [data-parallax-columns-grid]{touch-action:pan-y pinch-zoom}
 [data-parallax-columns].is-parallax-columns-shrink [data-parallax-columns-grid]{overflow:clip;transform-origin:50% 100%;will-change:scale}
 [data-parallax-columns].is-parallax-columns-motion [data-parallax-columns-hero],[data-parallax-columns].is-parallax-columns-motion [data-parallax-columns-grid]{opacity:0;transform:translate3d(0,40px,0)}
 [data-parallax-columns].is-parallax-columns-in [data-parallax-columns-hero],[data-parallax-columns].is-parallax-columns-in [data-parallax-columns-grid]{opacity:1;transform:none;transition:opacity 1s ${EASE_OUT},transform 1s ${EASE_OUT}}
@@ -490,8 +497,8 @@
     // past them on each side, and where the grid sits now and is heading,
     // in pixels
     const pan =
-      motion && section.getAttribute("data-parallax-columns-pan") !== "false" && window.matchMedia("(hover: hover) and (pointer: fine)").matches
-        ? { edgeLeft: 0, edgeRight: 0, left: 0, right: 0, x: 0, target: 0, ratio: 0.5, frame: null, last: 0 }
+      motion && section.getAttribute("data-parallax-columns-pan") !== "false"
+        ? { edgeLeft: 0, edgeRight: 0, left: 0, right: 0, x: 0, target: 0, ratio: 0.5, frame: null, last: 0, follow: false }
         : null;
 
     function measurePan() {
@@ -509,7 +516,20 @@
       pan.left = Math.max(0, pan.edgeLeft - leftmost);
       pan.right = Math.max(0, rightmost - pan.edgeRight);
       pan.target = pan.left - (pan.left + pan.right) * pan.ratio;
+      // A finger drags the grid directly, without the lag
+      if (pan.follow) {
+        cancelAnimationFrame(pan.frame);
+        pan.frame = null;
+        pan.last = 0;
+        pan.x = pan.target;
+        writePan();
+        return;
+      }
       if (!pan.frame && pan.target !== pan.x) pan.frame = requestAnimationFrame(stepPan);
+    }
+
+    function writePan() {
+      list.style.transform = Math.abs(pan.x) > 0.05 ? `translate3d(${pan.x}px,0,0)` : "";
     }
 
     function stepPan(now) {
@@ -518,7 +538,7 @@
       pan.last = now;
       pan.x += (pan.target - pan.x) * (1 - Math.exp(-dt / PAN_LAG));
       if (Math.abs(pan.target - pan.x) < 0.1) pan.x = pan.target;
-      list.style.transform = Math.abs(pan.x) > 0.05 ? `translate3d(${pan.x}px,0,0)` : "";
+      writePan();
       if (pan.x !== pan.target) pan.frame = requestAnimationFrame(stepPan);
       else pan.last = 0;
     }
@@ -536,6 +556,64 @@
           render();
         },
         { passive: true }
+      );
+
+      // touch-action leaves vertical swipes to the page, which cancels the
+      // pointer once it starts scrolling
+      section.classList.add("is-parallax-columns-swipe");
+      let swipe = null;
+      let suppressClick = false;
+      // The shrink scales the grid, so a finger's pixels cover more of it
+      const gridScale = () => parseFloat(grid.style.scale) || 1;
+
+      grid.addEventListener("pointerdown", (event) => {
+        suppressClick = false;
+        if (event.pointerType === "mouse") return;
+        swipe = { id: event.pointerId, x: event.clientX, ratio: pan.ratio, lastX: event.clientX, lastTime: event.timeStamp, velocity: 0, moving: false };
+      });
+
+      grid.addEventListener("pointermove", (event) => {
+        if (!swipe || event.pointerId !== swipe.id) return;
+        const span = pan.left + pan.right;
+        const dx = (event.clientX - swipe.x) / gridScale();
+        if (!span || (!swipe.moving && Math.abs(dx) < SWIPE_THRESHOLD)) return;
+        swipe.moving = true;
+        const dt = (event.timeStamp - swipe.lastTime) / 1000;
+        if (dt > 0) swipe.velocity = swipe.velocity * 0.6 + ((event.clientX - swipe.lastX) / dt) * 0.4;
+        swipe.lastX = event.clientX;
+        swipe.lastTime = event.timeStamp;
+        pan.ratio = clamp(swipe.ratio - dx / span, 0, 1);
+        pan.follow = true;
+        render();
+      });
+
+      const endSwipe = (event) => {
+        if (!swipe || event.pointerId !== swipe.id) return;
+        const { moving, velocity, lastTime } = swipe;
+        swipe = null;
+        pan.follow = false;
+        if (!moving) return;
+        suppressClick = true;
+        // A pause before letting go means no fling
+        const span = pan.left + pan.right;
+        if (span && event.type !== "pointercancel" && event.timeStamp - lastTime <= 80) {
+          pan.ratio = clamp(pan.ratio - (velocity * SWIPE_FLING) / gridScale() / span, 0, 1);
+        }
+        render();
+      };
+      grid.addEventListener("pointerup", endSwipe);
+      grid.addEventListener("pointercancel", endSwipe);
+
+      // A swipe that ends over a link must not follow it
+      grid.addEventListener(
+        "click",
+        (event) => {
+          if (!suppressClick) return;
+          suppressClick = false;
+          event.preventDefault();
+          event.stopPropagation();
+        },
+        true
       );
     }
 

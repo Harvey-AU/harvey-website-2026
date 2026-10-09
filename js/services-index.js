@@ -23,6 +23,8 @@
  *       a.services_trigger                    Toggles the row. Link to
  *                                             #<panel id> with role="button",
  *                                             aria-controls and aria-expanded.
+ *                                             The href is removed on load so
+ *                                             smooth scroll ignores it.
  *         .services_name                      Service name.
  *         .services_tag-now / -act            Rolling tag label; -act is set
  *                                             to "Show more" or "Close".
@@ -49,14 +51,14 @@
   const EASE = "cubic-bezier(.2,.7,.1,1)";
   const FINE = "(hover: hover) and (pointer: fine)";
   const CSS = `
-.services_name{transition:transform .7s ${EASE},color .5s ${EASE}}
+.services_name{transition:color .5s ${EASE}}
 .services_tag{transition:background-color .3s ${EASE}}
 .services_tag .label_icon{transition:border-color .3s ${EASE}}
 .services_tag-now,.services_tag-act{transition:transform .5s ${EASE}}
 .services_trigger:focus-visible{outline:2px solid #1e1e1e;outline-offset:4px;border-radius:2px}
 @media ${FINE}{
 .services_index.is-hovering .services_row:not(.is-open) .services_name{color:#bfbfbf}
-.services_index.is-hovering .services_row:not(.is-open) .services_trigger:hover .services_name{color:#1e1e1e;transform:translateX(.9rem)}
+.services_index.is-hovering .services_row:not(.is-open) .services_trigger:hover .services_name{color:#1e1e1e}
 .services_trigger:hover .services_tag{background-color:#ffb200}
 .services_trigger:hover .services_tag .label_icon{border-color:#1e1e1e}
 .services_trigger:hover .services_tag-now{transform:translateY(-110%)}
@@ -84,8 +86,6 @@
 .services_slide-hover{transition:opacity .6s,transform .9s}
 .services_cap{transition:opacity .45s ${EASE},transform .6s ${EASE}}
 .services_cap.is-active{transition-delay:.08s}
-.services_cap-arrow svg{transition:transform .4s ${EASE}}
-.services_show-link:hover .services_cap-arrow svg{transform:translateX(3px)}
 .is-services-armed .services_lede,.is-services-armed .services_svc-item{opacity:0;transform:translateY(14px)}
 .is-services-ready .services_lede,.is-services-ready .services_svc-item{transition:opacity .6s ${EASE},transform .8s ${EASE}}
 .is-services-armed .services_row.is-open .services_lede,.is-services-armed .services_row.is-open .services_svc-item{opacity:1;transform:none}
@@ -97,7 +97,7 @@
 @media (max-width: 767px){.services_svc .is-active .services_svc-name{transform:none}}
 @media (prefers-reduced-motion: reduce){
 [data-services-index] *{transition-duration:.01ms!important;transition-delay:0s!important}
-.services_index.is-hovering .services_row:not(.is-open) .services_trigger:hover .services_name,.services_svc .is-active .services_svc-name{transform:none}
+.services_svc .is-active .services_svc-name{transform:none}
 }`;
 
   function injectStyles() {
@@ -156,12 +156,16 @@
 
       const trigger = row.querySelector(".services_trigger");
       if (trigger) {
+        // The #panel href is the no-JS fallback. Drop it so smooth scroll's
+        // anchor handling does not scroll to the panel on every toggle.
+        trigger.removeAttribute("href");
+        trigger.tabIndex = 0;
         trigger.addEventListener("click", (event) => {
           event.preventDefault();
           toggle(row);
         });
         trigger.addEventListener("keydown", (event) => {
-          if (event.key !== " ") return;
+          if (event.key !== " " && event.key !== "Enter") return;
           event.preventDefault();
           toggle(row);
         });

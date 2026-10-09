@@ -4,7 +4,7 @@
  * A row of work cards wider than its frame that pans sideways with the
  * pointer. It rests at its start, with the first card in line with the
  * content above, until the pointer moves over the frame. Left of centre
- * nudges the row a little; right of centre pans it to its end, which it
+ * keeps it at its start; right of centre pans it to its end, which it
  * reaches before the pointer reaches the frame's right edge. At the end its
  * last item lines up with the right edge of the frame's parent, mirroring the
  * start, even if the frame bleeds past it. When the pointer leaves, the row
@@ -25,9 +25,10 @@
  *                                      Defaults to the frame's first child.
  *
  * Settings on [data-work-explorer]:
- *   -left="0.05"                       How far the row nudges right with the
- *                                      pointer at the left edge, as a share
- *                                      of its hidden width.
+ *   -left="0"                          How far the row nudges right, past its
+ *                                      start, with the pointer at the left
+ *                                      edge, as a share of its hidden width.
+ *                                      0 never moves it past the start.
  *   -right="1.2"                       How far it pans left with the pointer
  *                                      at the right edge, as a share of its
  *                                      hidden width. Over 1 reaches the end
@@ -42,7 +43,7 @@
   const debug = window.WebflowFramework?.debug || function () {};
 
   const MEDIA = "(min-width: 992px) and (hover: hover) and (pointer: fine)";
-  const DEFAULT_LEFT = 0.05;
+  const DEFAULT_LEFT = 0;
   const DEFAULT_RIGHT = 1.2;
   const DURATION = 0.8;
   const EASE = "power3.out";

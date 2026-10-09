@@ -37,7 +37,6 @@ flowchart LR
 | --- | --- | --- | --- |
 | `smooth-scroll.js` | script tag (`data-lerp`) | Optional: drives Lenis from `gsap.ticker` when present | Creates it |
 | `parallax-columns.js` | `[data-parallax-columns]` | No, own frame loop | Re-renders on each Lenis scroll |
-| `pinned-reveal.js` | `[data-pinned-reveal]` | Yes, ScrollTrigger pin and scrub | Calls `ScrollTrigger.update()` |
 | `pinned-steps.js` | `[data-pinned-steps]` | Yes, ScrollTrigger pin and scrub | Calls `ScrollTrigger.update()` |
 | `smile-field.js` | `[data-smile-field]` | Yes, ScrollTrigger pin | Calls `ScrollTrigger.update()` |
 | `marquee.js` | `[data-marquee]` | No, CSS animation | Reads velocity for the scroll boost |
@@ -65,7 +64,7 @@ sequenceDiagram
   RAF->>Ticker: tick(time)
   Ticker->>Lenis: lenis.raf(time * 1000)
   Lenis->>Lenis: ease scroll toward target, set window.scrollY
-  Lenis-->>ST: "scroll" event, ScrollTrigger.update()<br/>pinned-reveal, pinned-steps, smile-field
+  Lenis-->>ST: "scroll" event, ScrollTrigger.update()<br/>pinned-steps, smile-field
   Lenis-->>Own: "scroll" event<br/>parallax-columns render, marquee boost
   Ticker->>Own: bg-melt update (added to the ticker)
   ST->>ST: pins and scrubbed timelines read the new scroll
@@ -74,7 +73,9 @@ sequenceDiagram
 Start-up order matters only in one place.
 `smooth-scroll.js` creates Lenis asynchronously (it loads the library from jsDelivr), then exposes it as `window.WebflowFramework.lenis` and fires `smoothScrollReady`.
 Every other script either finds Lenis already there or waits for that event, so the script tags can load in any order.
-The exception is `pinned-reveal.js`, which goes before `pinned-steps.js`: both pin sections, and the earlier pin on the page must measure first or the later one starts at the wrong scroll position.
+The intro pin above `pinned-steps.js` is a Webflow Interaction, which shares the same global ScrollTrigger.
+It measures before `pinned-steps.js`, so the later pin starts at the right scroll position.
+Webflow Interactions do not hook into Lenis themselves; on the Home page `pinned-steps.js` already calls `ScrollTrigger.update()` on each Lenis scroll, which keeps them in step.
 
 ## Why a change needs a release
 

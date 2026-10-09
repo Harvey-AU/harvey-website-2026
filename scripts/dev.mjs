@@ -2,7 +2,7 @@
 // swapped for the local files in js/, and reloads the page when one changes.
 //   npm run dev            http://localhost:4321, or the next free port
 //   PORT=5000 SITE=https://harvey-2026.webflow.io npm run dev
-//   SCRIPTS=impact-chapter,impact-goals npm run dev   also loads local scripts
+//   SCRIPTS=impact-chapter,smile-field npm run dev   also loads local scripts
 //                                                     the live footer lacks
 import { createServer } from "node:http";
 import { readFile, watch } from "node:fs/promises";

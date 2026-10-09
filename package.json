@@ -3,7 +3,9 @@
   "private": true,
   "scripts": {
     "check": "eslint .",
-    "dev": "node scripts/dev.mjs"
+    "dev": "node scripts/dev.mjs",
+    "release-status": "node scripts/release-status.mjs",
+    "prepare": "git config core.hooksPath .githooks"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",

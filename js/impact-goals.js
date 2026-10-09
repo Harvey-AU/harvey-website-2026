@@ -10,7 +10,7 @@
  * the end. Without JavaScript, or with reduced motion, it simply shows lit.
  *
  * Load standalone on pages that need it (not part of the framework's main.js):
- *   <script src="https://cdn.jsdelivr.net/gh/Harvey-AU/harvey-website-2026@1.7.0/js/impact-goals.js" defer></script>
+ *   <script src="https://cdn.jsdelivr.net/gh/Harvey-AU/harvey-website-2026@X.Y.Z/js/impact-goals.js" defer></script>
  *
  * Markup (attribute prefix data-impact-goals):
  *   [data-impact-goals]                The list, or any wrapper around it.

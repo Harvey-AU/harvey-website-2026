@@ -20,7 +20,7 @@
  *
  * Load standalone on pages that need it (not part of the framework's main.js),
  * before pinned-steps.js when both are on a page:
- *   <script src="https://cdn.jsdelivr.net/gh/Harvey-AU/harvey-website-2026@1.7.0/js/pinned-reveal.js" defer></script>
+ *   <script src="https://cdn.jsdelivr.net/gh/Harvey-AU/harvey-website-2026@X.Y.Z/js/pinned-reveal.js" defer></script>
  *
  * Markup:
  *   [data-pinned-reveal]               Section, pinned on desktop.

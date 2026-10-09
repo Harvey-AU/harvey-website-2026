@@ -42,6 +42,7 @@ flowchart LR
 | `smile-field.js` | `[data-smile-field]` | Yes, ScrollTrigger pin | Calls `ScrollTrigger.update()` |
 | `marquee.js` | `[data-marquee]` | No, CSS animation | Reads velocity for the scroll boost |
 | `bg-melt.js` | `[data-bg-melt]` | Optional: runs on `gsap.ticker` when present | Reads scroll position each tick |
+| `work-explorer.js` | `[data-work-explorer]` | Yes, `gsap.quickTo` for the pan | No, pointer-driven |
 | `nav-reveal.js` | `[data-nav-reveal]` | No | No (not on the page yet) |
 
 Scripts that need GSAP check for `window.gsap` and `window.ScrollTrigger` and leave the page static without them, so a missing library degrades rather than throws.

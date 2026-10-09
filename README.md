@@ -15,6 +15,7 @@ These are site-specific, so they live here rather than in [webflow-framework](ht
 | `js/bg-melt.js` | Page background that melts between section colours as each section scrolls up, flipping marked artwork to light-on-dark over dark colours and melting marked text colour with it. | `[data-bg-melt]` sections, `data-bg-melt-fg`, `[data-bg-melt-invert]` artwork, `[data-bg-melt-text]` text |
 | `js/smile-field.js` | Pinned statement ringed by a canvas field of grey strokes that curl into yellow rounded smiles, centre first, as it scrolls, while its words light up (needs GSAP + ScrollTrigger). | `[data-smile-field]` section, `[data-smile-field-text]` text, `data-smile-field-length/-color/-from` |
 | `js/impact-chapter.js` | Pinned impact chapter: a canvas field curls into smiles behind the statement, which shrinks to a headline, then the stats slide in, fill and count up once (needs GSAP + ScrollTrigger). | `[data-impact-chapter]` section, `-stage`, `-copy`, `-statement`, `-stat`, `-number`, `-grid`, `-smile` |
+| `js/impact-goals.js` | List of goals (the 17 UN SDGs) whose icons light up in order, grey to colour, the first time it scrolls into view. Plays once. | `[data-impact-goals]` list, `-item`, `-icon`, `-label`, `data-impact-goals-stagger` |
 | `js/nav-reveal.js` | Header that hides on scroll down and reveals on scroll up (not used yet). | `[data-nav-reveal]` header |
 
 Each file's header comment documents its full markup and settings.
@@ -25,8 +26,8 @@ No build step: files are served as they are.
 Scripts load from jsDelivr, pinned to a release tag:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/Harvey-AU/harvey-website-2026@1.5.0/js/smooth-scroll.js" data-lerp="0.12" defer></script>
-<script src="https://cdn.jsdelivr.net/gh/Harvey-AU/harvey-website-2026@1.5.0/js/parallax-columns.js" defer></script>
+<script src="https://cdn.jsdelivr.net/gh/Harvey-AU/harvey-website-2026@1.7.0/js/smooth-scroll.js" data-lerp="0.12" defer></script>
+<script src="https://cdn.jsdelivr.net/gh/Harvey-AU/harvey-website-2026@1.7.0/js/parallax-columns.js" defer></script>
 ```
 
 ## Developing
@@ -38,8 +39,8 @@ Set `SITE` to preview another Webflow domain.
 ## Releasing a change
 
 1. Merge to `main`.
-2. Tag it and push the tag: `git tag v1.5.1 origin/main && git push origin v1.5.1`.
-3. Check jsDelivr serves it: `https://cdn.jsdelivr.net/gh/Harvey-AU/harvey-website-2026@1.5.1/js/marquee.js` returns the script, not a 404.
+2. Tag it and push the tag: `git tag v1.7.1 origin/main && git push origin v1.7.1`.
+3. Check jsDelivr serves it: `https://cdn.jsdelivr.net/gh/Harvey-AU/harvey-website-2026@1.7.1/js/marquee.js` returns the script, not a 404.
 4. In Webflow, swap the old `@version` for the new one on every script line in the Home page footer code, then publish.
 
 Step 2 must land before step 4.

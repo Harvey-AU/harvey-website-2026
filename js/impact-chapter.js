@@ -25,7 +25,7 @@
  * and faint behind the copy, grids are full and numbers are final.
  *
  * Load standalone on pages that need it (not part of the framework's main.js):
- *   <script src="https://cdn.jsdelivr.net/gh/Harvey-AU/harvey-website-2026@1.6.0/js/impact-chapter.js" defer></script>
+ *   <script src="https://cdn.jsdelivr.net/gh/Harvey-AU/harvey-website-2026@1.7.0/js/impact-chapter.js" defer></script>
  *
  * Markup (attribute prefix data-impact-chapter):
  *   [data-impact-chapter]              Section component, the scroll track.

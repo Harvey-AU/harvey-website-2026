@@ -26,8 +26,8 @@ No build step: files are served as they are.
 Scripts load from jsDelivr, pinned to a release tag:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/Harvey-AU/harvey-website-2026@1.5.0/js/smooth-scroll.js" data-lerp="0.12" defer></script>
-<script src="https://cdn.jsdelivr.net/gh/Harvey-AU/harvey-website-2026@1.5.0/js/parallax-columns.js" defer></script>
+<script src="https://cdn.jsdelivr.net/gh/Harvey-AU/harvey-website-2026@1.7.0/js/smooth-scroll.js" data-lerp="0.12" defer></script>
+<script src="https://cdn.jsdelivr.net/gh/Harvey-AU/harvey-website-2026@1.7.0/js/parallax-columns.js" defer></script>
 ```
 
 ## Developing
@@ -39,8 +39,8 @@ Set `SITE` to preview another Webflow domain.
 ## Releasing a change
 
 1. Merge to `main`.
-2. Tag it and push the tag: `git tag v1.5.1 origin/main && git push origin v1.5.1`.
-3. Check jsDelivr serves it: `https://cdn.jsdelivr.net/gh/Harvey-AU/harvey-website-2026@1.5.1/js/marquee.js` returns the script, not a 404.
+2. Tag it and push the tag: `git tag v1.7.1 origin/main && git push origin v1.7.1`.
+3. Check jsDelivr serves it: `https://cdn.jsdelivr.net/gh/Harvey-AU/harvey-website-2026@1.7.1/js/marquee.js` returns the script, not a 404.
 4. In Webflow, swap the old `@version` for the new one on every script line in the Home page footer code, then publish.
 
 Step 2 must land before step 4.

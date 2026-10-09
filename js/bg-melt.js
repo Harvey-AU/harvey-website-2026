@@ -11,7 +11,7 @@
  * real background in Webflow as the fallback without the script.
  *
  * Load standalone on pages that need it (not part of the framework's main.js):
- *   <script src="https://cdn.jsdelivr.net/gh/Harvey-AU/harvey-website-2026@1.5.0/js/bg-melt.js" defer></script>
+ *   <script src="https://cdn.jsdelivr.net/gh/Harvey-AU/harvey-website-2026@1.7.0/js/bg-melt.js" defer></script>
  *
  * Markup:
  *   [data-bg-melt="#151514"]           A section, in page order. The value is

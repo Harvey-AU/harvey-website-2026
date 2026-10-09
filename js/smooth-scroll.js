@@ -6,7 +6,7 @@
  * native scrolling, and reduced motion turns it off.
  *
  * Load standalone, site-wide or per page (not part of the framework's main.js):
- *   <script src="https://cdn.jsdelivr.net/gh/Harvey-AU/harvey-website-2026@1.7.0/js/smooth-scroll.js" defer></script>
+ *   <script src="https://cdn.jsdelivr.net/gh/Harvey-AU/harvey-website-2026@X.Y.Z/js/smooth-scroll.js" defer></script>
  *
  * Settings on the script tag:
  *   data-lerp="0.08"    Share of the remaining distance covered per frame.

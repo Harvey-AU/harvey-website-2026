@@ -2,6 +2,8 @@
 // swapped for the local files in js/, and reloads the page when one changes.
 //   npm run dev            http://localhost:4321, or the next free port
 //   PORT=5000 SITE=https://harvey-2026.webflow.io npm run dev
+//   SCRIPTS=impact-chapter,impact-goals npm run dev   also loads local scripts
+//                                                     the live footer lacks
 import { createServer } from "node:http";
 import { readFile, watch } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
@@ -13,6 +15,10 @@ const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const JS_DIR = join(ROOT, "js");
 const CDN_SCRIPTS = /https:\/\/cdn\.jsdelivr\.net\/gh\/Harvey-AU\/harvey-website-2026@[^/"']+\/js\//g;
 const RELOAD_SCRIPT = `<script>new EventSource("/__reload").onmessage=()=>location.reload()</script>`;
+const EXTRA_SCRIPTS = (process.env.SCRIPTS || "")
+  .split(",")
+  .map((name) => name.trim())
+  .filter(Boolean);
 
 const clients = new Set();
 
@@ -38,9 +44,11 @@ async function proxy(req, res) {
     res.end(Buffer.from(await upstream.arrayBuffer()));
     return;
   }
-  const html = (await upstream.text())
-    .replace(CDN_SCRIPTS, "/js/")
-    .replace("</body>", `${RELOAD_SCRIPT}</body>`);
+  let html = (await upstream.text()).replace(CDN_SCRIPTS, "/js/");
+  const extras = EXTRA_SCRIPTS.filter((name) => !html.includes(`/js/${name}.js`))
+    .map((name) => `<script src="/js/${name}.js" defer></script>`)
+    .join("");
+  html = html.replace("</body>", `${extras}${RELOAD_SCRIPT}</body>`);
   res.writeHead(upstream.status, { "content-type": type, "cache-control": "no-store" }).end(html);
 }
 

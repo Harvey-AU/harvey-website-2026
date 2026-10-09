@@ -23,11 +23,11 @@ No build step: files are served as they are.
 
 ## Loading
 
-Scripts load from jsDelivr, pinned to a release tag:
+Scripts load from jsDelivr, pinned to a release tag (`X.Y.Z` below; `npm run release-status` prints the latest):
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/Harvey-AU/harvey-website-2026@1.7.0/js/smooth-scroll.js" data-lerp="0.12" defer></script>
-<script src="https://cdn.jsdelivr.net/gh/Harvey-AU/harvey-website-2026@1.7.0/js/parallax-columns.js" defer></script>
+<script src="https://cdn.jsdelivr.net/gh/Harvey-AU/harvey-website-2026@X.Y.Z/js/smooth-scroll.js" data-lerp="0.12" defer></script>
+<script src="https://cdn.jsdelivr.net/gh/Harvey-AU/harvey-website-2026@X.Y.Z/js/parallax-columns.js" defer></script>
 ```
 
 ## Developing
@@ -35,12 +35,15 @@ Scripts load from jsDelivr, pinned to a release tag:
 `npm run dev` serves the live site at http://localhost:4321 (or the next free port) with its jsDelivr scripts swapped for the local `js/` files.
 The page reloads when a script changes.
 Set `SITE` to preview another Webflow domain.
+Set `SCRIPTS=impact-chapter,impact-goals` to also load local scripts the live footer does not load yet.
+
+`npm install` points git at `.githooks/`, whose `pre-push` refuses to push a branch whose PR is already merged.
 
 ## Releasing a change
 
-1. Merge to `main`.
-2. Tag it and push the tag: `git tag v1.7.1 origin/main && git push origin v1.7.1`.
-3. Check jsDelivr serves it: `https://cdn.jsdelivr.net/gh/Harvey-AU/harvey-website-2026@1.7.1/js/marquee.js` returns the script, not a 404.
+1. Merge to `main`, then run `npm run release-status` to see the latest tag, untagged commits and what the live footer loads.
+2. Tag it and push the tag: `git tag vX.Y.Z origin/main && git push origin vX.Y.Z`.
+3. Check jsDelivr serves it: `https://cdn.jsdelivr.net/gh/Harvey-AU/harvey-website-2026@X.Y.Z/js/marquee.js` returns the script, not a 404.
 4. In Webflow, swap the old `@version` for the new one on every script line in the Home page footer code, then publish.
 
 Step 2 must land before step 4.

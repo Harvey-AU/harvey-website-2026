@@ -19,7 +19,7 @@
  *
  * Load standalone on pages that need it (not part of the framework's main.js),
  * after pinned-steps.js when both are on a page:
- *   <script src="https://cdn.jsdelivr.net/gh/Harvey-AU/harvey-website-2026@1.7.0/js/smile-field.js" defer></script>
+ *   <script src="https://cdn.jsdelivr.net/gh/Harvey-AU/harvey-website-2026@X.Y.Z/js/smile-field.js" defer></script>
  *
  * Markup:
  *   [data-smile-field]                 Section, pinned while the smiles form.

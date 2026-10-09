@@ -17,13 +17,13 @@ flowchart LR
   end
 
   subgraph CDN["jsDelivr"]
-    Tag["gh/Harvey-AU/harvey-website-2026#64;1.5.0/js/*.js"]
+    Tag["gh/Harvey-AU/harvey-website-2026#64;X.Y.Z/js/*.js"]
     LenisLib["npm/lenis#64;1.3.26"]
   end
 
   subgraph Repo["GitHub repo"]
     Src["js/*.js on main"]
-    GitTag["git tag v1.5.0"]
+    GitTag["git tag vX.Y.Z"]
   end
 
   Src --> GitTag --> Tag
@@ -86,8 +86,8 @@ Pushing to `main` alone changes nothing live.
 flowchart TD
   A["Edit js/ locally<br/>npm run dev previews the live site on local scripts"] --> B["PR: CI runs ESLint"]
   B --> C["Merge to main"]
-  C --> D["Push a tag, e.g. v1.5.1"]
-  D --> E{"jsDelivr serves<br/>@1.5.1/js/*.js?"}
+  C --> D["Push a tag, vX.Y.Z"]
+  D --> E{"jsDelivr serves<br/>@X.Y.Z/js/*.js?"}
   E -- "200" --> F["Webflow: bump @version on every<br/>script line in the Home footer code"]
   E -- "404" --> D
   F --> G["Publish in Webflow"]

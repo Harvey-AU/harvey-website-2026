@@ -15,7 +15,7 @@
  * transforms.
  *
  * Load standalone on pages that need it (not part of the framework's main.js):
- *   <script src="https://cdn.jsdelivr.net/gh/Harvey-AU/harvey-website-2026@1.7.0/js/parallax-columns.js" defer></script>
+ *   <script src="https://cdn.jsdelivr.net/gh/Harvey-AU/harvey-website-2026@X.Y.Z/js/parallax-columns.js" defer></script>
  *
  * Markup (attribute prefix data-parallax-columns):
  *   [data-parallax-columns]            Section. Optional settings below.

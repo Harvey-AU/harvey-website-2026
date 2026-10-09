@@ -6,7 +6,7 @@
  * anything inside it has keyboard focus.
  *
  * Load standalone on pages that need it (not part of the framework's main.js):
- *   <script src="https://cdn.jsdelivr.net/gh/Harvey-AU/harvey-website-2026@1.7.0/js/nav-reveal.js" defer></script>
+ *   <script src="https://cdn.jsdelivr.net/gh/Harvey-AU/harvey-website-2026@X.Y.Z/js/nav-reveal.js" defer></script>
  *
  * Markup:
  *   [data-nav-reveal]           The header. Style it position: fixed, top 0.

@@ -19,7 +19,9 @@
  *                                      the section's own background colour.
  *
  * Needs at least two marked sections, otherwise it does nothing. Before the
- * first one arrives the body keeps its own colour.
+ * first one arrives the body keeps its own colour. Hidden sections (display
+ * none, e.g. a section parked while its replacement is reviewed) are skipped,
+ * since they would otherwise measure as sitting at the top of the screen.
  *
  * Other scripts can steer a section's colour at runtime by setting
  * element._meltColor (pinned-steps.js does this for its per-step colours).
@@ -149,6 +151,9 @@ html.bg-melt [data-bg-melt-text]{color:var(--bg-melt-fg)}`;
       let color = base;
       let text = baseText;
       sections.forEach((el, i) => {
+        // A hidden section has no box and reads as top 0, which would paint its
+        // colour over everything before it
+        if (!el.getClientRects().length) return;
         const target = colorOf(el, i);
         if (!target) return;
         const top = el.getBoundingClientRect().top;

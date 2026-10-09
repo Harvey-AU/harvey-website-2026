@@ -15,6 +15,7 @@ These are site-specific, so they live here rather than in [webflow-framework](ht
 | `js/bg-melt.js` | Page background that melts between section colours as each section scrolls up, flipping marked artwork to light-on-dark over dark colours and melting marked text colour with it. | `[data-bg-melt]` sections, `data-bg-melt-fg`, `[data-bg-melt-invert]` artwork, `[data-bg-melt-text]` text |
 | `js/smile-field.js` | Pinned statement ringed by a canvas field of grey strokes that curl into yellow rounded smiles, centre first, as it scrolls, while its words light up (needs GSAP + ScrollTrigger). | `[data-smile-field]` section, `[data-smile-field-text]` text, `data-smile-field-length/-color/-from` |
 | `js/impact-chapter.js` | Pinned impact chapter: a canvas field curls into smiles behind the statement, which shrinks to a headline, then the stats slide in, fill and count up once (needs GSAP + ScrollTrigger). | `[data-impact-chapter]` section, `-stage`, `-copy`, `-statement`, `-stat`, `-number`, `-grid`, `-smile` |
+| `js/impact-goals.js` | List of goals (the 17 UN SDGs) whose icons light up in order, grey to colour, the first time it scrolls into view. Plays once. | `[data-impact-goals]` list, `-item`, `-icon`, `-label`, `data-impact-goals-stagger` |
 | `js/nav-reveal.js` | Header that hides on scroll down and reveals on scroll up (not used yet). | `[data-nav-reveal]` header |
 
 Each file's header comment documents its full markup and settings.

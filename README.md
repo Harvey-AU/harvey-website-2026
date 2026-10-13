@@ -15,18 +15,18 @@ These are site-specific, so they live here rather than in [webflow-framework](ht
 | `js/smile-field.js` | Pinned statement ringed by a canvas field of grey strokes that curl into yellow rounded smiles, centre first, as it scrolls, while its words light up (needs GSAP + ScrollTrigger). | `[data-smile-field]` section, `[data-smile-field-text]` text, `data-smile-field-length/-color/-from` |
 | `js/impact-chapter.js` | Impact chapter in a normal-height section: stats fade in once as they scroll into view, then fill their smile grids and count up (needs GSAP + ScrollTrigger). | `[data-impact-chapter]` section, `-stat`, `-number`, `-grid`, `-smile` |
 | `js/work-explorer.js` | Row of work cards that rests at its start and, on desktop with a mouse, scrolls at constant speed from the screen's left/right edge zones or slides by click and drag with a short glide; a drag never follows a card link (needs GSAP). | `[data-work-explorer]` frame, `[data-work-explorer-track]` row, `data-work-explorer-speed` |
-| `js/cursor-pill.js` | Pill that rides beside the mouse pointer over marked elements, e.g. "Case study" over work cards, wiping in and out (needs GSAP). | `[data-cursor-pill]` pill, `[data-cursor-pill-text]` label, `data-cursor-text` on targets, `data-cursor-pill-offset` |
+| `js/cursor-pill.js` | Pill that rides beside the mouse pointer over marked elements, e.g. "Case study" over work cards, wiping in and out (needs GSAP; not used). | `[data-cursor-pill]` pill, `[data-cursor-pill-text]` label, `data-cursor-text` on targets, `data-cursor-pill-offset` |
 | `js/services-index.js` | Services accordion: one row open at a time, sub-services crossfade the case-study showcase on hover, focus or first tap. | `[data-services-index]` list, `data-lead` rows, `data-project` items, `data-key`/`data-url` slides and captions |
 | `js/nav-reveal.js` | Header that hides on scroll down and reveals on scroll up (not used yet). | `[data-nav-reveal]` header |
 
 Each file's header comment documents its full markup and settings.
 
-Two effects are built in Webflow Interactions instead, and are edited in the Designer's Interactions panel:
+One effect is built in Webflow Interactions instead, and is edited in the Designer's Interactions panel:
 
 | Interaction | What it does | Hooks |
 | --- | --- | --- |
 | Pinned reveal - pin (desktop), - words (desktop), - words (mobile), - fade content above | Intro section that pins on desktop while its words light up as it scrolls, with the content above fading out. | `section_intro` section with `intro_heading` and `intro_sub` inside, `[data-pinned-reveal-fade]` content |
-| Impact goals - light up | Goal icons and labels fade and grow in, in order, the first time the list scrolls into view. Plays once. | `impact-goals_list` with `impact-goals_icon` and `impact-goals_label` inside |
+
 No build step: files are served as they are.
 
 ## Loading
